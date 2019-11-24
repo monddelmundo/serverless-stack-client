@@ -1,28 +1,40 @@
 import React, { useState } from "react";
-import { Button, FormGroup, FormControl, ControlLabel } from "react-bootstrap";
+import { FormGroup, FormControl, ControlLabel } from "react-bootstrap";
+import LoaderButton from "../components/LoaderButton";
+import { useFormFields } from "../libs/hooksLib";
 import "./Login.css";
 import { Auth } from "aws-amplify";
 
 export default function Login(props) {
-    const [email, setEmail] = useState("");       //The useState hook just gives you the current 
-                                                  //value of the variable you want to store in the state and a function to set the new value.
-    const [password, setPassword] = useState("");
-  
+    //The useState hook just gives you the current 
+    //value of the variable you want to store in the state and a function to set the new value.
+    const [isLoading, setIsLoading] = useState(false);
+    //useFormFields can be used for multiple fields e.g. textbox
+    const [fields, handleFieldChange] = useFormFields({
+      email: "",
+      password: ""
+    });
+
+    //prevents user from clicking submit button if conditions are met
     function validateForm() {
-      return email.length > 0 && password.length > 0;
+      return fields.email.length > 0 && fields.password.length > 0;
     }
   
     async function handleSubmit(event) {
-        event.preventDefault();
-      
-        try {
-          await Auth.signIn(email, password); //AWS method that will login the user asynchronously
-          props.userHasAuthenticated(true);
-        } catch (e) {
-          alert(e.message);
-        }
-      }      
-  
+      event.preventDefault();
+    
+      setIsLoading(true); //to tell users that the page is loading.
+    
+      try {
+        await Auth.signIn(fields.email, fields.password);
+        props.userHasAuthenticated(true);
+        props.history.push("/");
+      } catch (e) {
+        alert(e.message);
+        setIsLoading(false);
+      }
+    }
+
     return (
       <div className="Login">
         <form onSubmit={handleSubmit}>
@@ -31,21 +43,27 @@ export default function Login(props) {
             <FormControl
               autoFocus
               type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              value={fields.email}
+              onChange={handleFieldChange}
             />
           </FormGroup>
           <FormGroup controlId="password" bsSize="large">
             <ControlLabel>Password</ControlLabel>
             <FormControl
-              value={password}
-              onChange={e => setPassword(e.target.value)}
               type="password"
+              value={fields.password}
+              onChange={handleFieldChange}
             />
           </FormGroup>
-          <Button block bsSize="large" disabled={!validateForm()} type="submit">
+          <LoaderButton
+            block
+            type="submit"
+            bsSize="large"
+            isLoading={isLoading}
+            disabled={!validateForm()}
+          >
             Login
-          </Button>
+          </LoaderButton>
         </form>
       </div>
     );

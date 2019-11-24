@@ -4,7 +4,7 @@
 // Adding a Navbar inside the container that fits to its container’s width using the attribute fluid.
 // Using Link component from the React-Router to handle the link to our app’s homepage (without forcing the page to refresh).
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 import { Nav, Navbar, NavItem } from "react-bootstrap";
 import "./App.css";
 import Routes from "./Routes"; //will import route.js' method
@@ -41,8 +41,9 @@ function App(props) {
 
   async function handleLogout() {
     await Auth.signOut(); //AWS method that will sign out the user from the session. 
-
     userHasAuthenticated(false);
+    props.history.push("/login"); //will redirect the user to login page after logging out
+
   }
   
   return (
@@ -80,4 +81,5 @@ function App(props) {
 ///this will pass these props to the child component of the routes
 //that the App component creates.
 
-export default App;
+export default withRouter(App); //uses withRouter since this component does not have access to Routes
+
